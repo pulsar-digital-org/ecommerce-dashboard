@@ -1,42 +1,44 @@
-
-import { FileInput, XIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { Button } from './button';
-import { Label } from './label';
-import { toast } from 'sonner';
-import { ImageBaseInterface, imageCreate } from '@/api/image';
-import { motion } from 'framer-motion';
+import { FileInput, XIcon } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Button } from './button'
+import { Label } from './label'
+import { toast } from 'sonner'
+import { motion } from 'framer-motion'
+import client, { ImageInterface } from '@/client/client'
+import { useSession } from '@/hooks/use-session'
 
 interface FileSelectProps {
-	label: string;
-	isMulti?: boolean;
-	defaultImages?: ImageBaseInterface[];
-	onSelect: (images: string[]) => void;
+	label: string
+	isMulti?: boolean
+	defaultImages?: ImageInterface[]
+	onSelect: (images: string[]) => void
 }
 
-interface LocalFile extends ImageBaseInterface {
-	upload: Promise<ImageBaseInterface | undefined>;
+interface LocalFile extends ImageInterface {
+	upload: Promise<ImageInterface | undefined>
 }
 
 const FileSelect = ({
 	label,
 	isMulti = false,
 	defaultImages,
-	onSelect
+	onSelect,
 }: FileSelectProps) => {
-	const [dragActive, setDragActive] = useState(false);
-	const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
-	const dragContainerRef = useRef<HTMLDivElement>(null);
+	const { token } = useSession()
 
-	const [selectedFiles, setSelectedFiles] = useState<LocalFile[]>([]);
-	const [images, setImages] = useState<ImageBaseInterface[]>(defaultImages ?? []);
-	const inputRef = useRef<HTMLInputElement>(null);
+	const [dragActive, setDragActive] = useState(false)
+	const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
+	const dragContainerRef = useRef<HTMLDivElement>(null)
+
+	const [selectedFiles, setSelectedFiles] = useState<LocalFile[]>([])
+	const [images, setImages] = useState<ImageInterface[]>(defaultImages ?? [])
+	const inputRef = useRef<HTMLInputElement>(null)
 
 	// Ref to track which files have been processed
-	const processedFiles = useRef<Set<string>>(new Set());
+	const processedFiles = useRef<Set<string>>(new Set())
 
 	const handleFiles = (files: FileList) => {
-		const newFiles = Array.from(files).map(file => ({
+		const newFiles = Array.from(files).map((file) => ({
 			id: Math.random().toString(36).slice(2),
 			url: URL.createObjectURL(file),
 			name: file.name,
@@ -44,92 +46,103 @@ const FileSelect = ({
 			upload: handleUpload(file),
 			active: true,
 			createdAt: new Date(),
-			updatedAt: new Date()
-		}));
+			updatedAt: new Date(),
+		}))
 
 		if (!isMulti) {
 			// Revoke URLs for previously selected files when not multi-selecting
-			selectedFiles.forEach(f => URL.revokeObjectURL(f.url));
-			setSelectedFiles(newFiles.slice(0, 1));
+			selectedFiles.forEach((f) => URL.revokeObjectURL(f.url))
+			setSelectedFiles(newFiles.slice(0, 1))
 		} else {
-			setSelectedFiles(prev => [...prev, ...newFiles]);
+			setSelectedFiles((prev) => [...prev, ...newFiles])
 		}
-	};
+	}
 
 	const handleDrag = (e: React.DragEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
-		const rect = dragContainerRef.current?.getBoundingClientRect();
+		e.preventDefault()
+		e.stopPropagation()
+		const rect = dragContainerRef.current?.getBoundingClientRect()
 		if (rect) {
 			setDragPosition({
 				x: e.clientX - rect.left,
-				y: e.clientY - rect.top
-			});
+				y: e.clientY - rect.top,
+			})
 		}
-		setDragActive(e.type === 'dragenter' || e.type === 'dragover');
-	};
+		setDragActive(e.type === 'dragenter' || e.type === 'dragover')
+	}
 
 	const handleDrop = (e: React.DragEvent) => {
-		e.preventDefault();
-		setDragActive(false);
+		e.preventDefault()
+		setDragActive(false)
 		if (e.dataTransfer.files?.length) {
-			handleFiles(e.dataTransfer.files);
+			handleFiles(e.dataTransfer.files)
 		}
-	};
+	}
 
 	const removeSelectedFile = (id: string) => {
-		setSelectedFiles(prev => {
-			const newFiles = prev.filter(file => file.id !== id);
-			const removed = prev.find(f => f.id === id);
-			if (removed) URL.revokeObjectURL(removed.url);
-			return newFiles;
-		});
-	};
+		setSelectedFiles((prev) => {
+			const newFiles = prev.filter((file) => file.id !== id)
+			const removed = prev.find((f) => f.id === id)
+			if (removed) URL.revokeObjectURL(removed.url)
+			return newFiles
+		})
+	}
 
 	const handleUpload = async (
 		file: File
-	): Promise<ImageBaseInterface | undefined> => {
+	): Promise<ImageInterface | undefined> => {
 		try {
-			return await imageCreate(file);
+			const formData = new FormData()
+			formData.append('file', file)
+
+			const response = await client.api.images.$post(
+				{ form: { file } },
+				{
+					headers: { Authorization: `Bearer ${token}` },
+				}
+			)
+			const res = await response.json()
+
+			return res.image
 		} catch (err) {
-			toast.error('Upload failed', { description: `${err}` });
-			throw err; // Ensure the promise rejects on error
+			toast.error('Upload failed', { description: `${err}` })
+			throw err // Ensure the promise rejects on error
 		}
-	};
+	}
 
 	useEffect(() => {
-		selectedFiles.forEach(file => {
+		selectedFiles.forEach((file) => {
 			// Only process files that haven't been handled yet
-			if (processedFiles.current.has(file.id)) return;
-			processedFiles.current.add(file.id);
+			if (processedFiles.current.has(file.id)) return
+			processedFiles.current.add(file.id)
 
 			file.upload
-				.then(result => {
+				.then((result) => {
 					if (result) {
-						setImages(prev => {
-							const newImages = [...prev, result];
-							return newImages;
-						});
+						setImages((prev) => {
+							const newImages = [...prev, result]
+							return newImages
+						})
 					}
-					setSelectedFiles(prev => {
-						const newFiles = prev.filter(f => f.id !== file.id);
-						URL.revokeObjectURL(file.url);
-						return newFiles;
-					});
+					setSelectedFiles((prev) => {
+						const newFiles = prev.filter((f) => f.id !== file.id)
+						URL.revokeObjectURL(file.url)
+						return newFiles
+					})
 				})
 				.catch(() => {
-					setSelectedFiles(prev => {
-						const newFiles = prev.filter(f => f.id !== file.id);
-						URL.revokeObjectURL(file.url);
-						return newFiles;
-					});
-				});
-		});
-	}, [selectedFiles]);
+					setSelectedFiles((prev) => {
+						const newFiles = prev.filter((f) => f.id !== file.id)
+						URL.revokeObjectURL(file.url)
+						return newFiles
+					})
+				})
+		})
+	}, [selectedFiles])
 
 	useEffect(() => {
-		onSelect(images.map((i) => i.id));
-	}, [images, onSelect]);
+		onSelect(images.map((i) => i.id))
+	}, [images, onSelect])
 
 	return (
 		<div className="space-y-2">
@@ -146,7 +159,7 @@ const FileSelect = ({
 						style={{
 							left: dragPosition.x,
 							top: dragPosition.y,
-							pointerEvents: 'none'
+							pointerEvents: 'none',
 						}}
 					>
 						<div className="h-16 w-16 rounded-full bg-blue-500/20" />
@@ -164,7 +177,7 @@ const FileSelect = ({
 				</Button>
 				<div className="flex flex-wrap gap-4">
 					<div className="grid grid-cols-2 gap-4">
-						{images?.map(image => (
+						{images?.map((image) => (
 							<div
 								key={image.id}
 								className="relative flex flex-col justify-between bg-muted-foreground/10 rounded-lg items-center py-3 px-3 w-full gap-4"
@@ -181,14 +194,16 @@ const FileSelect = ({
 									<Button
 										size="sm"
 										className="h-8 w-8 rounded-full"
-										onClick={() => setImages((prev) => prev.filter(file => file.id !== image.id))}
+										onClick={() =>
+											setImages((prev) =>
+												prev.filter((file) => file.id !== image.id)
+											)
+										}
 									>
 										<XIcon className="h-4 w-4" />
 									</Button>
 								</div>
-								<div
-									className="rounded-md w-full overflow-hidden relative"
-								>
+								<div className="rounded-md w-full overflow-hidden relative">
 									<img
 										src={image.url}
 										alt={image.name}
@@ -231,7 +246,7 @@ const FileSelect = ({
 									transition={{
 										delay: index * 0.1,
 										duration: 0.2,
-										ease: [0.26, 1.44, 0.53, 0.97]
+										ease: [0.26, 1.44, 0.53, 0.97],
 									}}
 									className="rounded-md w-full overflow-hidden relative"
 								>
@@ -252,12 +267,12 @@ const FileSelect = ({
 						ref={inputRef}
 						hidden
 						multiple={isMulti}
-						onChange={e => e.target.files && handleFiles(e.target.files)}
+						onChange={(e) => e.target.files && handleFiles(e.target.files)}
 					/>
 				</div>
 			</div>
 		</div>
-	);
-};
+	)
+}
 
-export default FileSelect;
+export default FileSelect

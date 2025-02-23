@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
-import { Montserrat } from 'next/font/google'
+import { Ubuntu } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import React, { PropsWithChildren } from 'react'
 
-const montserrat = Montserrat({ subsets: ['latin'] })
+const roboto = Ubuntu({
+	weight: ['300', '400', '500', '700'],
+	subsets: ['latin'],
+})
 
 export const metadata: Metadata = {
 	title: 'Pulsar Dashboard',
@@ -15,7 +18,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
 	return (
 		<html lang="en">
 			<body
-				className={`${montserrat.className} antialiased flex flex-col overflow-hidden h-dvh w-svh relative`}
+				className={`${roboto.className} antialiased flex flex-col overflow-hidden h-dvh w-svh relative`}
 			>
 				<Providers>{children} </Providers>
 			</body>

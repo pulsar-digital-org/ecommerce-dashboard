@@ -13,6 +13,7 @@ import client, {
 	CategoryModifiable,
 	categoryModifiableSchema,
 } from '@/client/client'
+import { useSession } from '@/hooks/use-session'
 
 interface CategoryDialogProps {
 	category?: CategoryInterface
@@ -21,12 +22,13 @@ interface CategoryDialogProps {
 
 const CategoryDialog = forwardRef<ModalRef, CategoryDialogProps>(
 	({ category, parent }, ref) => {
+		const { token } = useSession()
 		const queryClient = useQueryClient()
 
 		const methods = useForm<CategoryModifiable>({
 			resolver: zodResolver(categoryModifiableSchema),
 			defaultValues: {
-				name: category?.name ?? '',
+				name: category?.name ?? undefined,
 				parentId: parent?.id ?? undefined,
 			},
 		})
@@ -37,17 +39,29 @@ const CategoryDialog = forwardRef<ModalRef, CategoryDialogProps>(
 
 			try {
 				if (!category) {
-					const res = await client.api.categories.$post({ form: values })
+					const res = await client.api.categories.$post(
+						{ form: values },
+						{
+							headers: { Authorization: `Bearer ${token}` },
+						}
+					)
 					newCategory = (await res.json()).category
 				} else {
 					values.parentId = undefined
-					const res = await client.api.categories[':id'].$put({
-						param: { id: category.id },
-						form: values,
-					})
+					const res = await client.api.categories[':id'].$put(
+						{
+							param: { id: category.id },
+							form: values,
+						},
+						{
+							headers: { Authorization: `Bearer ${token}` },
+						}
+					)
 					newCategory = (await res.json()).category
 					console.log(newCategory)
 				}
+
+				console.log(newCategory)
 
 				queryClient.invalidateQueries({
 					queryKey: ['categories'],
@@ -73,10 +87,12 @@ const CategoryDialog = forwardRef<ModalRef, CategoryDialogProps>(
 					description: 'Add a new category',
 					submit: 'Add Category',
 				}}
-				onSave={methods.handleSubmit(onSubmit)}
+				onSave={methods.handleSubmit(onSubmit, (e) => {
+					throw new Error(JSON.stringify(e))
+				})}
 			>
 				<FormProvider {...methods}>
-					<CategoryForm category={category} />
+					<CategoryForm category={category} parent={parent} />
 				</FormProvider>
 			</GenericDialog>
 		)

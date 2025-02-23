@@ -1,58 +1,59 @@
 // TODO:
 
-import { useFormContext } from 'react-hook-form';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { useFormContext } from 'react-hook-form'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import {
 	Command,
 	CommandEmpty,
 	CommandGroup,
 	CommandInput,
 	CommandItem,
-	CommandList
-} from '@/components/ui/command';
+	CommandList,
+} from '@/components/ui/command'
 import {
 	FormControl,
 	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
-	FormMessage
-} from '@/components/ui/form';
+	FormMessage,
+} from '@/components/ui/form'
 import {
 	Popover,
 	PopoverContent,
-	PopoverTrigger
-} from '@/components/ui/popover';
-import { ChevronsUpDown } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Category } from '@/types/category';
+	PopoverTrigger,
+} from '@/components/ui/popover'
+import { ChevronsUpDown } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CategoryInterface } from '@/client/client'
 
 const GenericFormSelect = ({
 	options,
 	defaultCategory,
-	defaultSelected
+	defaultSelected,
 }: {
-	options: Category[];
-	defaultCategory?: Category;
-	defaultSelected?: Category[];
+	options: CategoryInterface[]
+	defaultCategory?: CategoryInterface
+	defaultSelected?: CategoryInterface[]
 }) => {
-	const { control, setValue } = useFormContext();
-	const [selected, setSelected] = useState<string[]>([]);
+	const { control, setValue } = useFormContext()
+	const [selected, setSelected] = useState<string[]>([])
 
 	useEffect(() => {
-		const s = [];
+		const s = []
 
-		if (defaultCategory) s.push(defaultCategory.id);
+		if (defaultCategory) s.push(defaultCategory.id)
 
-		defaultSelected?.map((c) => s.push(c.id));
+		defaultSelected?.map((c) => s.push(c.id))
 
-		setSelected(s);
-	}, [defaultCategory, defaultSelected]);
+		setSelected(s)
+	}, [defaultCategory, defaultSelected])
 
 	useEffect(() => {
-		setValue('categories', selected);
-	}, [selected]);
+		setValue('categories', selected)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selected])
 
 	return (
 		<FormField
@@ -75,29 +76,33 @@ const GenericFormSelect = ({
 									<span className="flex gap-2 flex-wrap">
 										{selected
 											? selected.map((categoryId: string | undefined) => {
-												if (!categoryId) return;
-												return (
-													<span
-														key={categoryId}
-														className={`py-1 px-3 rounded transition ${categoryId === defaultCategory?.id
-															? 'text-muted-foreground/50 bg-muted-foreground/5 hover:bg-muted-foreground/5'
-															: 'text-muted-foreground bg-muted-foreground/10 hover:bg-muted-foreground/20'
+													if (!categoryId) return
+													return (
+														<span
+															key={categoryId}
+															className={`py-1 px-3 rounded transition ${
+																categoryId === defaultCategory?.id
+																	? 'text-muted-foreground/50 bg-muted-foreground/5 hover:bg-muted-foreground/5'
+																	: 'text-muted-foreground bg-muted-foreground/10 hover:bg-muted-foreground/20'
 															}`}
-														onClick={e => {
-															e.preventDefault();
+															onClick={(e) => {
+																e.preventDefault()
 
-															if (categoryId === defaultCategory?.id) {
-																return;
+																if (categoryId === defaultCategory?.id) {
+																	return
+																}
+																setSelected(
+																	selected.filter((item) => item !== categoryId)
+																)
+															}}
+														>
+															{
+																options?.find((item) => item.id === categoryId)
+																	?.name
 															}
-															setSelected(
-																selected.filter(item => item !== categoryId)
-															);
-														}}
-													>
-														{options.find(item => item.id === categoryId)?.name}
-													</span>
-												)
-											})
+														</span>
+													)
+												})
 											: 'Select categories'}
 									</span>
 									<ChevronsUpDown className="opacity-50" />
@@ -114,23 +119,22 @@ const GenericFormSelect = ({
 									<CommandEmpty>No categories found.</CommandEmpty>
 									<CommandGroup>
 										{options
-											.filter(item => !selected.includes(item.id))
-											.map((option: Category) => (
+											?.filter((item) => !selected.includes(item.id))
+											.map((option) => (
 												<CommandItem
 													value={option.name}
 													key={option.id}
 													onSelect={() => {
 														setSelected(
 															selected.includes(option.id)
-																? selected.filter(i => i !== option.id)
+																? selected.filter((i) => i !== option.id)
 																: [...selected, option.id]
-														);
+														)
 													}}
 												>
 													{option.name}
 												</CommandItem>
-											)
-											)}
+											))}
 									</CommandGroup>
 								</CommandList>
 							</Command>
@@ -143,7 +147,7 @@ const GenericFormSelect = ({
 				</FormItem>
 			)}
 		/>
-	);
-};
+	)
+}
 
-export default GenericFormSelect;
+export default GenericFormSelect

@@ -14,6 +14,7 @@ import client, {
 	ProductModifiable,
 	productModifiableSchema,
 } from '@/client/client'
+import { useSession } from '@/hooks/use-session'
 
 type ProductDialogProps = {
 	product?: ProductInterface
@@ -22,6 +23,7 @@ type ProductDialogProps = {
 
 const ProductDialog = forwardRef<ModalRef, ProductDialogProps>(
 	({ product, category }, ref) => {
+		const { token } = useSession()
 		const queryClient = useQueryClient()
 
 		const methods = useForm<ProductModifiable>({
@@ -29,19 +31,60 @@ const ProductDialog = forwardRef<ModalRef, ProductDialogProps>(
 			defaultValues: product ?? undefined,
 		})
 
-		useEffect(() => {}, [product, methods])
+		const { data, isFetching, fetchNextPage, hasNextPage } = useInfiniteQuery({
+			queryKey: ['categories'],
+			queryFn: async ({ pageParam }) => {
+				const res = await client.api.categories.$get({
+					query: {
+						pageParam: `${pageParam}`,
+					},
+				})
+				const result = await res.json()
+
+				const nextId = result.hasNextPage ? pageParam + 1 : undefined
+				const previousId = pageParam > 1 ? pageParam - 1 : undefined
+
+				return { items: result.items, nextId, previousId }
+			},
+			initialPageParam: 1,
+			getNextPageParam: (lastPage) => lastPage.nextId,
+			getPreviousPageParam: (firstPage) => firstPage.previousId,
+		})
+
+		const categories = useMemo(() => {
+			if (!data || !data.pages) return []
+			return data.pages.flatMap((page) => page.items || [])
+		}, [data])
+
+		useEffect(() => {
+			if (hasNextPage && !isFetching) fetchNextPage()
+		}, [fetchNextPage, hasNextPage, isFetching])
+
+		useEffect(() => {
+			console.log(product)
+		}, [product, methods])
 
 		const onSubmit = async (values: ProductModifiable) => {
 			let newProduct
+			console.log('P: ', values)
+
 			try {
 				if (!product) {
-					const res = await client.api.products.$post({ form: values })
+					console.log('CREATE')
+					const res = await client.api.products.$post(
+						{ json: values },
+						{ headers: { Authorization: `Bearer ${token}` } }
+					)
 					newProduct = (await res.json()).product
 				} else {
-					const res = await client.api.products[':id'].$put({
-						param: { id: product.id },
-						form: values,
-					})
+					console.log('UPDATE')
+					const res = await client.api.products[':id'].$put(
+						{
+							param: { id: product.id },
+							json: values,
+						},
+						{ headers: { Authorization: `Bearer ${token}` } }
+					)
 					newProduct = (await res.json()).product
 				}
 
@@ -58,7 +101,12 @@ const ProductDialog = forwardRef<ModalRef, ProductDialogProps>(
 				toast.error(`Failed to create product.`, { description: `${err}` })
 			}
 
-			methods.reset(newProduct)
+			if (product) {
+				methods.reset(newProduct)
+				return
+			}
+
+			methods.reset({})
 		}
 
 		return (
@@ -69,11 +117,13 @@ const ProductDialog = forwardRef<ModalRef, ProductDialogProps>(
 					description: 'Create/Update product',
 					submit: 'Save product',
 				}}
-				onSave={methods.handleSubmit(onSubmit, (err) => console.log(err))}
+				onSave={methods.handleSubmit(onSubmit, (e) => {
+					throw new Error(JSON.stringify(e))
+				})}
 			>
 				<FormProvider {...methods}>
 					<ProductForm
-						categories={product?.categories}
+						categories={categories}
 						product={product}
 						defaultCategory={category}
 					/>

@@ -42,8 +42,13 @@ const ProductForm = ({
 	const methods = useFormContext()
 	const fields = GetFields()
 
+	console.log('PRODUCT CAT', categories)
+
 	const handleImagesSelect = (images: string[]) => {
 		methods.setValue('images', images)
+	}
+	const handleThumbnailSelect = (images: string[]) => {
+		methods.setValue('thumbnail', images[0])
 	}
 
 	return (
@@ -57,6 +62,12 @@ const ProductForm = ({
 					options={categories}
 					defaultCategory={defaultCategory}
 					defaultSelected={product?.categories}
+				/>
+
+				<FileSelect
+					label="Thumbnail"
+					defaultImages={product?.thumbnail ? [product?.thumbnail] : []}
+					onSelect={handleThumbnailSelect}
 				/>
 
 				<FileSelect

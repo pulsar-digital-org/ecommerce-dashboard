@@ -32,10 +32,10 @@ const ProductManage = ({ category, className }: ProductManageProps) => {
 			<GenericTable
 				infiniteQueryOptions={infiniteQueryOptions(
 					infiniteQueryOptions({
-						queryKey: ['categories'],
+						queryKey: ['products', category.id],
 						queryFn: async ({ pageParam }) => {
-							const res = await client.api.categories.$get({
-								query: { pageParam: `${pageParam}` },
+							const res = await client.api.products.$get({
+								query: { categoryId: category.id, pageParam: `${pageParam}` },
 							})
 							const result = await res.json()
 

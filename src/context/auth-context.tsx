@@ -13,6 +13,7 @@ import client, { UserInterface, UserRole } from '@/client/client'
 
 export type AuthContextType = {
 	user?: UserInterface
+	token: string
 	isGuest: () => boolean
 	login: (username: string, password: string) => Promise<void>
 	register: (username: string, email: string, password: string) => Promise<void>
@@ -30,7 +31,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 		enabled: !!token,
 		queryKey: ['self', token],
 		queryFn: async () => {
-			const res = await client.api.users.self.$get()
+			const res = await client.api.users.self.$get(
+				{},
+				{ headers: { Authorization: `Bearer ${token}` } }
+			)
 			return (await res.json()).user
 		},
 		retry: false,
@@ -75,12 +79,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 	const value = useMemo(
 		() => ({
 			user,
+			token,
 			isGuest,
 			login,
 			register,
 			logout,
 		}),
-		[user, isGuest, login, register, logout]
+		[user, token, isGuest, login, register, logout]
 	)
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

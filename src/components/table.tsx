@@ -1,8 +1,5 @@
 'use client'
 
-// todo:
-/* eslint-disable  @typescript-eslint/no-explicit-any */
-
 import { useMemo, useState } from 'react'
 import {
 	ColumnDef,
@@ -62,8 +59,9 @@ const GenericTable = <T extends { id: string }>({
 		() =>
 			isFetching
 				? Array(10).fill({})
-				: (data as { pages: any[] } | undefined)?.pages[currentPage - 1]
-						?.items || [],
+				: (data as { pages: [{ items: T[] }] } | undefined)?.pages[
+						currentPage - 1
+					]?.items || [],
 		[isFetching, data, currentPage]
 	)
 	const tableColumns = useMemo(

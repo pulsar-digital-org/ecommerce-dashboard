@@ -2,61 +2,63 @@ import {
 	forwardRef,
 	HTMLAttributes,
 	useImperativeHandle,
-	useState
-} from 'react';
+	useState,
+} from 'react'
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
-	DialogFooter,
+	DialogTitle,
 	DialogHeader,
-	DialogTitle
-} from './dialog';
-import { ModalRef } from '../modals/type';
-import { LoadingButton } from './loading_button';
-import { toast } from 'sonner';
+	DialogFooter,
+} from '@/components/ui/dialog'
+import { ModalRef } from '../modals/type'
+import { LoadingButton } from './loading-button'
+import { toast } from 'sonner'
 
 export type GenericDialogLabelProps = {
-	title: string;
-	description: string;
-	submit: string;
-};
+	title: string
+	description: string
+	submit: string
+}
 
 type GenericDialogProps = {
-	dialogLabels: GenericDialogLabelProps;
-	onSave: () => Promise<void>;
-	children: React.ReactNode | undefined;
-} & HTMLAttributes<HTMLDivElement>;
+	dialogLabels: GenericDialogLabelProps
+	onSave: () => Promise<void>
+	children: React.ReactNode | undefined
+} & HTMLAttributes<HTMLDivElement>
 
 const GenericDialog = forwardRef<ModalRef, GenericDialogProps>(
 	({ dialogLabels, onSave, children, ...rest }, ref) => {
-		const [isOpen, setIsOpen] = useState<boolean>(false);
-		const { title, description, submit } = dialogLabels;
-		const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+		const [isOpen, setIsOpen] = useState<boolean>(false)
+		const { title, description, submit } = dialogLabels
+		const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
 		const close = async () => {
-			setIsOpen(false);
-		};
+			setIsOpen(false)
+		}
 
 		useImperativeHandle(ref, () => ({
 			open: () => setIsOpen(true),
 			close,
 			toggle: () => setIsOpen(!isOpen),
-			isOpen: () => isOpen
-		}));
+			isOpen: () => isOpen,
+		}))
 
 		const handleSave = async () => {
-			setIsSubmitting(true);
+			console.log('handle save')
+			setIsSubmitting(true)
 			try {
-				await onSave();
+				console.log('on save')
+				await onSave()
 
-				setIsOpen(false);
+				setIsOpen(false)
 			} catch (err) {
-				toast.error('Submission failed.', { description: `${err}` });
+				toast.error('Submission failed.', { description: `${err}` })
 			} finally {
-				setIsSubmitting(false);
+				setIsSubmitting(false)
 			}
-		};
+		}
 
 		return (
 			<Dialog open={isOpen} {...rest} onOpenChange={setIsOpen}>
@@ -77,9 +79,9 @@ const GenericDialog = forwardRef<ModalRef, GenericDialogProps>(
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-		);
+		)
 	}
-);
-GenericDialog.displayName = 'Generic Dialog';
+)
+GenericDialog.displayName = 'Generic Dialog'
 
-export default GenericDialog;
+export default GenericDialog

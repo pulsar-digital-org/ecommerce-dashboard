@@ -15,6 +15,8 @@ import {
 	ProductModifiable,
 	productModifiableSchema,
 } from '../../../server/src/types/product'
+import { ImageInterface } from '../../../server/src/db/models/Image'
+import { loginSchema, registerSchema } from '../../../server/src/types/auth'
 
 const client = hc<AppType>('http://192.168.0.236:7071/')
 
@@ -26,7 +28,9 @@ export {
 	type CategoryModifiable,
 	productModifiableSchema,
 	type ProductModifiable,
-	type ImageBaseInterface,
+	type ImageInterface,
 	UserRole,
+	loginSchema,
+	registerSchema,
 }
 export default client
