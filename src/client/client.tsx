@@ -18,7 +18,7 @@ import {
 import { ImageInterface } from '../../../server/src/db/models/Image'
 import { loginSchema, registerSchema } from '../../../server/src/types/auth'
 
-const client = hc<AppType>('http://192.168.0.236:7071/')
+const client = hc<AppType>(process.env.API_URL || 'http://192.168.0.236:7071/')
 
 export {
 	type UserInterface,
