@@ -31,8 +31,8 @@ RUN if [ -f yarn.lock ]; then \
 FROM base AS builder
 WORKDIR /app
 
-ARG API_URL
-ENV API_URL=${API_URL}
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Bring in installed dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
@@ -60,8 +60,8 @@ RUN if [ -f yarn.lock ]; then \
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ARG API_URL
-ENV API_URL=${API_URL}
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 RUN apk add --no-cache libc6-compat && \
     addgroup --system --gid 1001 nodejs && \
