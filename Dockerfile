@@ -60,6 +60,8 @@ RUN if [ -f yarn.lock ]; then \
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ARG API_URL
+ENV API_URL=${API_URL}
 
 RUN apk add --no-cache libc6-compat && \
     addgroup --system --gid 1001 nodejs && \
