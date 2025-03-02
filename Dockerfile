@@ -31,6 +31,9 @@ RUN if [ -f yarn.lock ]; then \
 FROM base AS builder
 WORKDIR /app
 
+ARG API_URL
+ENV API_URL=${API_URL}
+
 # Bring in installed dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
@@ -70,8 +73,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 USER nextjs
 
-ARG API_URL
-ENV API_URL=${API_URL}
 ARG PORT
 ENV PORT=${PORT}
 ENV HOSTNAME="0.0.0.0"
