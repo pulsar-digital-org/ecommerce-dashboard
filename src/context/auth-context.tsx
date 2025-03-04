@@ -8,7 +8,7 @@ import {
 	useState,
 } from 'react'
 import { useLocalStorage } from 'usehooks-ts'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import client, { UserInterface, UserRole } from '@/client/client'
 
 export type AuthContextType = {
@@ -26,8 +26,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 	const [user, setUser] = useState<UserInterface>()
 	const [token, setToken, removeToken] = useLocalStorage('token', '')
 	const router = useRouter()
+	const pathname = usePathname()
 
-	const { data: me } = useQuery({
+	const { data: me, isFetching } = useQuery({
 		enabled: !!token,
 		queryKey: ['self', token],
 		queryFn: async () => {
@@ -41,10 +42,22 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 	})
 
 	useEffect(() => {
-		if (me && me.id !== user?.id) {
-			setUser(me)
+		// Only run this effect after the query is done loading.
+		if (!isFetching) {
+			console.log('stopped fetching', me)
+			// If there's no token or no user (me) returned, redirect to login.
+			if (
+				(!token ||
+					!me ||
+					(me?.role !== UserRole.owner && me?.role !== UserRole.admin)) &&
+				!['/auth/login', '/auth/register'].includes(pathname)
+			) {
+				router.push('/auth/login')
+			} else if (me && me.id !== user?.id) {
+				setUser(me)
+			}
 		}
-	}, [me, user])
+	}, [isFetching, token, me, user, router, pathname])
 
 	const isGuest = useCallback(() => user?.role === UserRole.guest, [user])
 
@@ -54,7 +67,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 				form: { identifier, plainPassword: password },
 			})
 
-			setToken((await res.json()).token)
+			const resData = await res.json()
+
+			if (!resData.token) {
+				throw new Error(resData.message)
+			}
+
+			setToken(resData.token)
 		},
 		[setToken]
 	)

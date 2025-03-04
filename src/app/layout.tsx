@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { Ubuntu } from 'next/font/google'
 import './globals.css'
-import { Providers } from './providers'
 import React, { PropsWithChildren } from 'react'
+import { ProvidersUnathorized } from './providers-unathorized'
 
 const roboto = Ubuntu({
 	weight: ['300', '400', '500', '700'],
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
 	description: 'Pulsar dash',
 }
 
-export default function RootLayout({ children }: PropsWithChildren) {
+export default function AuthLayout({ children }: PropsWithChildren) {
 	return (
 		<html lang="en">
 			<body
 				className={`${roboto.className} antialiased flex flex-col overflow-hidden h-dvh w-svh relative`}
 			>
-				<Providers>{children} </Providers>
+				<ProvidersUnathorized>{children}</ProvidersUnathorized>
 			</body>
 		</html>
 	)

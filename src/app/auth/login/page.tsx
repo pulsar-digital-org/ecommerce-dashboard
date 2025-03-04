@@ -18,7 +18,7 @@ export default function LoginPage() {
 						duration: 0.6,
 						ease: [0.1, 0.4, 0.5, 1],
 					}}
-					className="flex h-full flex-col items-center justify-center gap-6 bg-background p-6 md:p-10"
+					className="flex h-[100svh] flex-col items-center justify-center gap-6 bg-background p-6 md:p-10"
 				>
 					<div className="w-full max-w-sm">
 						<LoginForm />
