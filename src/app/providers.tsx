@@ -19,8 +19,8 @@ export const Providers = ({ children }: PropsWithChildren) => (
 				<ThemeProvider>
 					<AuthProvider>
 						<AdminPanelLayout>
-							{children}
 							<Toaster />
+							{children}
 						</AdminPanelLayout>
 					</AuthProvider>
 				</ThemeProvider>

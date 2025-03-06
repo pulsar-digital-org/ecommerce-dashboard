@@ -17,8 +17,8 @@ export const ProvidersUnathorized = ({ children }: PropsWithChildren) => (
 			<Theme>
 				<ThemeProvider>
 					<AuthProvider>
-						{children}
 						<Toaster />
+						{children}
 					</AuthProvider>
 				</ThemeProvider>
 			</Theme>

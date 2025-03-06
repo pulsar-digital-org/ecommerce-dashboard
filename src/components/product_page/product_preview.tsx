@@ -1,43 +1,65 @@
-'use client';
-import { productDelete, productGet } from '@/api/product';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import Loader from '../loader/loader';
-import { useRef } from 'react';
-import { Button } from '../ui/button';
-import { ModalRef } from '../modals/type';
-import ProductDialog from './product_dialog';
-import { Separator } from '../ui/separator';
-import { Category } from '@/types/category';
-import { ImageBaseInterface } from '@/api/image';
-import { toast } from 'sonner';
+'use client'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useRef } from 'react'
+import { Button } from '../ui/button'
+import { ModalRef } from '../modals/type'
+import ProductDialog from './product_dialog'
+import { Separator } from '../ui/separator'
+import { toast } from 'sonner'
+import Loader from '@/icons/loader'
+import client from '@/client/client'
+import { useSession } from '@/hooks/use-session'
 
 type ProductPreviewProps = {
-	productId: string;
-};
+	productId: string
+}
 
 const ProductPreview: React.FC<ProductPreviewProps> = ({ productId }) => {
-	const queryClient = useQueryClient();
+	const { token } = useSession()
+	const queryClient = useQueryClient()
+	const dialogRef = useRef<ModalRef | null>(null)
 
 	const { data: product, isLoading } = useQuery({
 		queryKey: ['product', productId],
-		queryFn: () => productGet(productId)
-	});
-	const dialogRef = useRef<ModalRef | null>(null);
+		queryFn: async () => {
+			const res = await client.api.products[':id'].$get({
+				param: { id: productId },
+			})
+
+			const result = await res.json()
+
+			return result.product
+		},
+	})
 
 	const { mutate: deleteProduct } = useMutation({
-		mutationFn: productDelete,
+		mutationFn: async () => {
+			const res = await client.api.products[':id'].$delete(
+				{
+					param: { id: productId },
+				},
+				{ headers: { Authorization: `Bearer ${token}` } }
+			)
+
+			const result = await res.json()
+
+			return result
+		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['products'] });
-			toast.success('Product Deleted');
-		}
-	});
+			queryClient.invalidateQueries({ queryKey: ['products'] })
+			toast.success('Product Deleted')
+		},
+		onError: () => {
+			toast.error('Product deletion failed')
+		},
+	})
 
 	if (isLoading) {
 		return (
 			<div className="flex h-full justify-center items-center">
 				<Loader />
 			</div>
-		);
+		)
 	}
 
 	if (!product) {
@@ -45,7 +67,7 @@ const ProductPreview: React.FC<ProductPreviewProps> = ({ productId }) => {
 			<div className="flex h-full justify-center items-center">
 				Product not found
 			</div>
-		);
+		)
 	}
 
 	return (
@@ -54,10 +76,7 @@ const ProductPreview: React.FC<ProductPreviewProps> = ({ productId }) => {
 				<h2 className="text-3xl font-bold">{product.name}</h2>
 				<div className="flex gap-4">
 					<Button onClick={() => dialogRef.current?.open()}>Edit</Button>
-					<Button
-						variant="destructive"
-						onClick={() => deleteProduct(productId)}
-					>
+					<Button variant="destructive" onClick={() => deleteProduct()}>
 						Delete
 					</Button>
 				</div>
@@ -69,18 +88,18 @@ const ProductPreview: React.FC<ProductPreviewProps> = ({ productId }) => {
 						<h4 className="text-sm font-medium leading-none">Product name</h4>
 						<p className="text-sm text-muted-foreground">{product.name}</p>
 					</div>
-					<Separator className="my-4" />
+					<Separator className="my-4 w-full" />
 					<div className="space-y-1">
 						<h4 className="text-sm font-medium leading-none">Description</h4>
 						<p className="text-sm text-muted-foreground">
 							{product.description}
 						</p>
 					</div>
-					<Separator className="my-4" />
+					<Separator className="my-4 w-full" />
 					<div className="space-y-1">
 						<h4 className="text-sm font-medium leading-none">Categories</h4>
 						<span className="flex gap-2 flex-wrap">
-							{product.categories?.map((cat: Category) => (
+							{product.categories?.map((cat) => (
 								<span
 									key={cat.id}
 									className="py-1 text-xs px-3 rounded transition text-muted-foreground bg-muted-foreground/10"
@@ -90,19 +109,19 @@ const ProductPreview: React.FC<ProductPreviewProps> = ({ productId }) => {
 							))}
 						</span>
 					</div>
-					<Separator className="my-4" />
+					<Separator className="my-4 w-full" />
 					<div className="space-y-1">
 						<h4 className="text-sm font-medium leading-none">Stock</h4>
 						<p className="text-sm text-muted-foreground">{product.stock}</p>
 					</div>
-					<Separator className="my-4" />
+					<Separator className="my-4 w-full" />
 					<div className="space-y-1">
 						<h4 className="text-sm font-medium leading-none">Updated at</h4>
 						<p className="text-sm text-muted-foreground">
 							{new Date(product.updatedAt).toLocaleString()}
 						</p>
 					</div>
-					<Separator className="my-4" />
+					<Separator className="my-4 w-full" />
 					<div className="space-y-1">
 						<h4 className="text-sm font-medium leading-none">Created at</h4>
 						<p className="text-sm text-muted-foreground">
@@ -111,7 +130,7 @@ const ProductPreview: React.FC<ProductPreviewProps> = ({ productId }) => {
 					</div>
 				</div>
 				<div className="grid grid-cols-2 gap-4">
-					{product.images?.map((image: ImageBaseInterface) => (
+					{product.images?.map((image) => (
 						<div
 							key={image.id}
 							className="relative flex flex-col justify-between bg-muted-foreground/10 rounded-lg items-center py-3 px-3 w-full gap-4"
@@ -129,7 +148,7 @@ const ProductPreview: React.FC<ProductPreviewProps> = ({ productId }) => {
 			</div>
 			<ProductDialog ref={dialogRef} product={product} />
 		</div>
-	);
-};
+	)
+}
 
-export default ProductPreview;
+export default ProductPreview

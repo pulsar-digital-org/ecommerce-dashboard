@@ -53,6 +53,8 @@ const FileSelect = ({
 			// Revoke URLs for previously selected files when not multi-selecting
 			selectedFiles.forEach((f) => URL.revokeObjectURL(f.url))
 			setSelectedFiles(newFiles.slice(0, 1))
+			// Clear previously uploaded images
+			setImages([])
 		} else {
 			setSelectedFiles((prev) => [...prev, ...newFiles])
 		}
@@ -119,10 +121,12 @@ const FileSelect = ({
 			file.upload
 				.then((result) => {
 					if (result) {
-						setImages((prev) => {
-							const newImages = [...prev, result]
-							return newImages
-						})
+						// If multi is false, replace the current image; otherwise, append it
+						if (!isMulti) {
+							setImages([result])
+						} else {
+							setImages((prev) => [...prev, result])
+						}
 					}
 					setSelectedFiles((prev) => {
 						const newFiles = prev.filter((f) => f.id !== file.id)
@@ -138,7 +142,7 @@ const FileSelect = ({
 					})
 				})
 		})
-	}, [selectedFiles])
+	}, [selectedFiles, isMulti])
 
 	useEffect(() => {
 		onSelect(images.map((i) => i.id))

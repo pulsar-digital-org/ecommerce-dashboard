@@ -20,7 +20,7 @@ const ProductManage = ({ category, className }: ProductManageProps) => {
 	const dialogRef = useRef<ModalRef | null>(null)
 
 	const handleRowClick = (row: ProductInterface) => {
-		router.push(`/dashboard/products/${row.id}`)
+		router.push(`/products/${row.id}`)
 	}
 
 	const handleOpenChange = () => {

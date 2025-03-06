@@ -7,13 +7,14 @@ import GenericDialog from '../ui/generic-dialog'
 import { forwardRef } from 'react'
 import { ModalRef } from '../modals/type'
 import { toast } from 'sonner'
-import { useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import client, {
 	CategoryInterface,
 	CategoryModifiable,
 	categoryModifiableSchema,
 } from '@/client/client'
 import { useSession } from '@/hooks/use-session'
+import { Button } from '../ui/button'
 
 interface CategoryDialogProps {
 	category?: CategoryInterface
@@ -33,9 +34,31 @@ const CategoryDialog = forwardRef<ModalRef, CategoryDialogProps>(
 			},
 		})
 
+		const { mutate: deleteCategory } = useMutation({
+			mutationFn: async () => {
+				if (!category) return
+				const res = await client.api.categories[':id'].$delete(
+					{
+						param: { id: category.id },
+					},
+					{ headers: { Authorization: `Bearer ${token}` } }
+				)
+
+				const result = await res.json()
+
+				return result
+			},
+			onSuccess: () => {
+				queryClient.invalidateQueries({ queryKey: ['categories'] })
+				toast.success('Category Deleted')
+			},
+			onError: () => {
+				toast.error('Category deletion failed')
+			},
+		})
+
 		const onSubmit = async (values: CategoryModifiable) => {
 			let newCategory
-			console.log('DSJKAJDK', values)
 
 			try {
 				if (!category) {
@@ -58,10 +81,7 @@ const CategoryDialog = forwardRef<ModalRef, CategoryDialogProps>(
 						}
 					)
 					newCategory = (await res.json()).category
-					console.log(newCategory)
 				}
-
-				console.log(newCategory)
 
 				queryClient.invalidateQueries({
 					queryKey: ['categories'],
@@ -91,6 +111,9 @@ const CategoryDialog = forwardRef<ModalRef, CategoryDialogProps>(
 					throw new Error(JSON.stringify(e))
 				})}
 			>
+				<Button onClick={() => deleteCategory()} variant="destructive">
+					Delete Category
+				</Button>
 				<FormProvider {...methods}>
 					<CategoryForm category={category} parent={parent} />
 				</FormProvider>
