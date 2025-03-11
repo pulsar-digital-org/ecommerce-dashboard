@@ -70,10 +70,14 @@ const ProductPreview: React.FC<ProductPreviewProps> = ({ productId }) => {
 		)
 	}
 
+	console.log(product)
+
 	return (
 		<div className="p-4 py-8 flex flex-col gap-8">
 			<div className="flex justify-between items-center">
-				<h2 className="text-3xl font-bold">{product.name}</h2>
+				<h2 className="text-3xl font-bold whitespace-pre-line">
+					{product.name}
+				</h2>
 				<div className="flex gap-4">
 					<Button onClick={() => dialogRef.current?.open()}>Edit</Button>
 					<Button variant="destructive" onClick={() => deleteProduct()}>
@@ -86,12 +90,14 @@ const ProductPreview: React.FC<ProductPreviewProps> = ({ productId }) => {
 				<div className="flex flex-col gap-2">
 					<div className="space-y-1">
 						<h4 className="text-sm font-medium leading-none">Product name</h4>
-						<p className="text-sm text-muted-foreground">{product.name}</p>
+						<p className="text-sm text-muted-foreground whitespace-pre-line">
+							{product.name}
+						</p>
 					</div>
 					<Separator className="my-4 w-full" />
 					<div className="space-y-1">
 						<h4 className="text-sm font-medium leading-none">Description</h4>
-						<p className="text-sm text-muted-foreground">
+						<p className="text-sm text-muted-foreground whitespace-pre-line">
 							{product.description}
 						</p>
 					</div>
