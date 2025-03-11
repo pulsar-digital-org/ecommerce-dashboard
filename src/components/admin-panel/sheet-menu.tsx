@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { MenuIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -8,7 +9,6 @@ import {
 	SheetHeader,
 	SheetContent,
 	SheetTrigger,
-	SheetTitle,
 } from '@/components/ui/sheet'
 
 export function SheetMenu() {
@@ -26,8 +26,14 @@ export function SheetMenu() {
 						variant="link"
 						asChild
 					>
-						<Link href="/dashboard" className="flex items-center gap-2">
-							<SheetTitle className="font-bold text-lg">Pulsar</SheetTitle>
+						<Link href="/" className="flex items-center">
+							<Image
+								className="h-10"
+								width={396}
+								height={100}
+								src="/pulsar_text_logo.svg"
+								alt="pulsar digital"
+							/>
 						</Link>
 					</Button>
 				</SheetHeader>

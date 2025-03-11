@@ -6,6 +6,7 @@ import { useSidebar } from '@/hooks/use-sidebar'
 import { useStore } from '@/hooks/use-store'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function Sidebar() {
 	const sidebar = useStore(useSidebar, (x) => x)
@@ -33,17 +34,14 @@ export function Sidebar() {
 					variant="link"
 					asChild
 				>
-					<Link href="/" className="flex items-center gap-2">
-						<h1
-							className={cn(
-								'font-bold text-lg whitespace-nowrap transition-[transform,opacity,display] ease-in-out duration-300',
-								!getOpenState()
-									? '-translate-x-96 opacity-0 hidden'
-									: 'translate-x-0 opacity-100'
-							)}
-						>
-							Pulsar Dashboard
-						</h1>
+					<Link href="/" className="flex items-center">
+						<Image
+							className="h-10"
+							width={396}
+							height={100}
+							src="/pulsar_text_logo.svg"
+							alt="pulsar digital"
+						/>
 					</Link>
 				</Button>
 				<Menu isOpen={getOpenState()} />
