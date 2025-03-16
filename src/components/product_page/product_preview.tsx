@@ -136,20 +136,26 @@ const ProductPreview: React.FC<ProductPreviewProps> = ({ productId }) => {
 					</div>
 				</div>
 				<div className="grid grid-cols-2 gap-4">
-					{product.images?.map((image) => (
-						<div
-							key={image.id}
-							className="relative flex flex-col justify-between bg-muted-foreground/10 rounded-lg items-center py-3 px-3 w-full gap-4"
-						>
-							<div className="rounded-md w-full overflow-hidden relative">
-								<img
-									src={image.url}
-									alt={image.name}
-									className="object-cover w-full h-full"
-								/>
+					{product.images
+						?.sort(
+							(a, b) =>
+								new Date(a.createdAt).getTime() -
+								new Date(b.createdAt).getTime()
+						)
+						.map((image) => (
+							<div
+								key={image.id}
+								className="relative flex flex-col justify-between bg-muted-foreground/10 rounded-lg items-center py-3 px-3 w-full gap-4"
+							>
+								<div className="rounded-md w-full overflow-hidden relative">
+									<img
+										src={image.url}
+										alt={image.name}
+										className="object-cover w-full h-full"
+									/>
+								</div>
 							</div>
-						</div>
-					))}
+						))}
 				</div>
 			</div>
 			<ProductDialog ref={dialogRef} product={product} />

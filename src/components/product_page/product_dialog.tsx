@@ -77,7 +77,7 @@ const ProductDialog = forwardRef<ModalRef, ProductDialogProps>(
 					)
 					newProduct = (await res.json()).product
 				} else {
-					console.log('UPDATE')
+					console.log('UPDATE', values)
 					const res = await client.api.products[':id'].$put(
 						{
 							param: { id: product.id },
