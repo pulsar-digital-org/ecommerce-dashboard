@@ -174,7 +174,11 @@ const GenericTable = <T extends { id: string }>({
 					variant="outline"
 					size="sm"
 					onClick={handleNextPage}
-					disabled={isFetching || !hasNextPage}
+					disabled={
+						isFetching ||
+						(!hasNextPage &&
+							currentPage >= (data as { pages: [{ items: T[] }] }).pages.length)
+					}
 				>
 					Next
 				</Button>
